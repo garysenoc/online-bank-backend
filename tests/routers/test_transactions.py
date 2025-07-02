@@ -1,59 +1,6 @@
 import pytest
 from httpx import AsyncClient
 
-from db.models.subaccount import CreateSubaccount
-from db.models.transaction import CreateTransaction
-
-
-async def create_subaccount(subaccount_payload: CreateSubaccount, async_client: AsyncClient, headers: dict):
-    response = await async_client.post("/v1/subaccounts/", json=subaccount_payload, headers=headers)
-    return response.json()
-
-
-async def create_transaction(tx_payload: CreateTransaction, async_client: AsyncClient, headers: dict):
-    response = await async_client.post("/v1/transactions/", json=tx_payload, headers=headers)
-    return response.json()
-
-
-@pytest.fixture(autouse=True)
-async def created_subaccount(async_client: AsyncClient, headers: dict):
-    return await create_subaccount(
-        {
-            "admin_id": "685efac1afa55d0bad73c6d3",
-            "owner_id": "685eed44dd73e20ae1c32c6b",
-            "name": "Test SubAcct 1",
-            "account_number": "7327205215",
-            "routing_number": "490871470",
-            "balance": {
-                "total": 2500,
-                "processing": 0
-            }
-        },
-        async_client,
-        headers
-    )
-
-
-@pytest.fixture(autouse=True)
-async def created_transaction(async_client: AsyncClient, headers: dict, created_subaccount: dict):
-    return await create_transaction(
-        {
-            "senderSubaccount": created_subaccount["subaccount"],
-            "recipient": {
-                "fullname": "Test User 1",
-                "account_number": "7327205214",
-                "routing_number": "490871469"
-            },
-            "amount": 1000.0,
-            "baseFee": 50.0,
-            "priorityFee": 50.0,
-            "priority": "low",
-            "note": "Test Note 1",
-        },
-        async_client,
-        headers
-    )
-
 
 @pytest.mark.anyio
 async def test_get_transactions(async_client: AsyncClient, headers: dict, created_transaction: dict):
