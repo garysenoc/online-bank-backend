@@ -10,6 +10,7 @@ from dependencies.session import validate_session
 from db.client import database
 from db.models.subaccount import CreateSubaccount
 from db.models.transaction import CreateTransaction
+from db.models.user_access import CreateUserAccess
 
 
 @pytest.fixture(scope="session")
@@ -72,6 +73,11 @@ async def create_transaction(tx_payload: CreateTransaction, async_client: AsyncC
     return response.json()
 
 
+async def create_user(user_payload: CreateUserAccess, async_client: AsyncClient, headers: dict):
+    response = await async_client.post("/v1/user/", json=user_payload, headers=headers)
+    return response.json()
+
+
 @pytest.fixture(autouse=True)
 async def created_subaccount(async_client: AsyncClient, headers: dict):
     return await create_subaccount(
@@ -106,6 +112,19 @@ async def created_transaction(async_client: AsyncClient, headers: dict, created_
             "priorityFee": 50.0,
             "priority": "low",
             "note": "Test Note 1",
+        },
+        async_client,
+        headers
+    )
+
+
+@pytest.fixture(autouse=True)
+async def created_user(async_client: AsyncClient, headers: dict):
+    return await create_user(
+        {
+            "name": "Test User 1",
+            "email": "testuser1@example.com",
+            "password": "pass123",
         },
         async_client,
         headers
