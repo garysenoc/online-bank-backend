@@ -43,18 +43,14 @@ async def get_transaction(transaction: Annotated[Transaction, Depends(retrieve_t
 
 @router.post("/", status_code = 200)
 async def post_transaction(payload_tx: CreateTransaction):
-    
+
     tx = Transaction(
-		sender_subaccount = payload_tx.senderSubaccount,
-		recipient = payload_tx.recipient,
-		amount = payload_tx.amount,
-        fee = Fee(base = payload_tx.baseFee, priority = payload_tx.priorityFee),
-        priority = payload_tx.priority,
+        **payload_tx.model_dump(by_alias = True, exclude = {"id"}),
         date = Date(requested = datetime.now(timezone.utc), concluded = None),
-		notes = ["client: " + payload_tx.note],
+        notes = ["client: " + payload_tx.note],
         status = "pending"
     )
-      
+
     tx.id = str((await transactions.insert_one(tx.model_dump(by_alias = True, exclude = {"id"}))).inserted_id)
     tx.date.requested = (await transactions.find_one({ '_id': ObjectId(tx.id) }, { 'date.requested': True }))['date']['requested'] # Avoid Date Format Issues
 

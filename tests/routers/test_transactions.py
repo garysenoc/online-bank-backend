@@ -19,15 +19,17 @@ async def test_get_transaction(async_client: AsyncClient, headers: dict, created
 @pytest.mark.anyio
 async def test_create_transaction(async_client: AsyncClient, headers: dict):
     tx_payload = {
-        "senderSubaccount": "685efac1afa55d0bad73c6d3",
+        "sender_subaccount": "685efac1afa55d0bad73c6d3",
         "recipient": {
             "fullname": "Test User 1",
             "account_number": "7327205214",
             "routing_number": "490871469"
         },
         "amount": 1000.0,
-        "baseFee": 50.0,
-        "priorityFee": 50.0,
+        "fee": {
+            "base": 50.0,
+            "priority": 50.0
+        },
         "priority": "low",
         "note": "Test Note 1",
     }

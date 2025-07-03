@@ -101,15 +101,17 @@ async def created_subaccount(async_client: AsyncClient, headers: dict):
 async def created_transaction(async_client: AsyncClient, headers: dict, created_subaccount: dict):
     return await create_transaction(
         {
-            "senderSubaccount": created_subaccount["subaccount"],
+            "sender_subaccount": created_subaccount["subaccount"],
             "recipient": {
                 "fullname": "Test User 1",
                 "account_number": "7327205214",
                 "routing_number": "490871469"
             },
             "amount": 1000.0,
-            "baseFee": 50.0,
-            "priorityFee": 50.0,
+            "fee": {
+                "base": 50.0,
+                "priority": 50.0
+            },
             "priority": "low",
             "note": "Test Note 1",
         },
