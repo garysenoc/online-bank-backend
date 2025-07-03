@@ -18,27 +18,24 @@ class Date(BaseModel):
     requested: datetime
     concluded: datetime | None
 
-class Transaction(BaseModel):
-    id: Optional[MongoObjectId] = Field(alias = "_id", default = None)
+class BaseTransaction(BaseModel):
     sender_subaccount: str = Field(alias = "sender")
     recipient: RecipientTransaction = Field(alias = "recipient")
     amount: float
     fee: Fee
     priority: str
+
+    model_config = ConfigDict(populate_by_name = True, arbitrary_types_allowed = True)
+
+class Transaction(BaseTransaction):
+    id: Optional[MongoObjectId] = Field(alias = "_id", default = None)
     date: Date
     notes: Optional[list[str]] = None
     status: TransactionStatus
 
     model_config = ConfigDict(populate_by_name = True, arbitrary_types_allowed = True)
 
-# TODO: use the same fields as Transaction
-class CreateTransaction(BaseModel):
-    senderSubaccount: str
-    recipient: RecipientTransaction
-    amount: float
-    baseFee: float
-    priorityFee: float
-    priority: str
+class CreateTransaction(BaseTransaction):
     note: str
 
 class UpdateTransaction(BaseModel):
