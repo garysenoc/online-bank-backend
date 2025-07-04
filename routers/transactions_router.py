@@ -12,19 +12,32 @@ router = APIRouter(
     prefix = "/transactions"
 )
 
-# TODO: Add skip, limit, and search with text
 @router.get("/", status_code=200)
-async def get_transactions(session: Annotated[dict, Depends(validate_session)]):
+async def get_transactions(
+    session: Annotated[dict, Depends(validate_session)], skip: int = 0, limit: int = 0, search: str = None
+):
     subaccount_filter_criteria = { "admin_id": session["id"] } if session["role"] == "admin" else { "owner_id": session["id"] }
 
     subaccounts_ids_raw = await subaccounts.find(subaccount_filter_criteria).to_list()
 
     subaccounts_ids = [ str(subaccount["_id"]) for subaccount in subaccounts_ids_raw ]
 
-    transactions_raw = await transactions.find({ "$or": [{"sender": { "$in": subaccounts_ids }}, {"recipient": { "$in": subaccounts_ids }}] }).to_list()
+    if search:
+        transactions_raw = transactions.find({ "sender_subaccount": search })
+    else:
+        transactions_raw = transactions.find(
+            { "$or": [
+                { "sender_subaccount": { "$in": subaccounts_ids }},
+                { "sender": { "$in": subaccounts_ids }},
+                { "recipient": { "$in": subaccounts_ids }}
+            ]},
+        )
+
+    transactions_raw = transactions_raw.skip(skip) if skip > 0 else transactions_raw
+    transactions_raw = transactions_raw.limit(limit) if limit > 0 else transactions_raw
 
     res = []
-    for transaction in transactions_raw:
+    async for transaction in transactions_raw:
         if "type" in transaction: res += [DepositTransaction(**transaction)]
         else: res += [Transaction(**transaction)] # By default is internal to external
 
