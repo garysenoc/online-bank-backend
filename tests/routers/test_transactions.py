@@ -56,7 +56,7 @@ async def create_test_transactions(sender: str, idx: int, async_client: AsyncCli
 async def test_get_transactions(async_client: AsyncClient, headers: dict, created_transaction: dict):
     response = await async_client.get("/v1/transactions/", headers=headers)
     assert response.status_code == 200
-    assert response.json() == [created_transaction]
+    assert response.json()["items"] == [created_transaction]
 
 
 @pytest.mark.anyio
@@ -69,8 +69,8 @@ async def test_get_transactions_with_skip(async_client: AsyncClient, headers: di
 
     response = await async_client.get("/v1/transactions/?skip=6", headers=headers)
     assert response.status_code == 200
-    assert len(response.json()) == 5
-    assert [Transaction(**tx) for tx in response.json()] == tx2_objects
+    assert response.json()["total"] == 5
+    assert [Transaction(**tx) for tx in response.json()["items"]] == tx2_objects
 
 
 @pytest.mark.anyio
@@ -83,8 +83,8 @@ async def test_get_transactions_with_limit(async_client: AsyncClient, headers: d
 
     response = await async_client.get("/v1/transactions/?limit=6", headers=headers)
     assert response.status_code == 200
-    assert len(response.json()) == 6
-    assert [Transaction(**tx) for tx in response.json()] == [Transaction(**created_transaction)] + tx1_objects
+    assert response.json()["total"] == 6
+    assert [Transaction(**tx) for tx in response.json()["items"]] == [Transaction(**created_transaction)] + tx1_objects
 
 
 @pytest.mark.anyio
@@ -97,8 +97,8 @@ async def test_get_transactions_with_search(async_client: AsyncClient, headers: 
 
     response = await async_client.get(f"/v1/transactions/?search={subaccount_id1}", headers=headers)
     assert response.status_code == 200
-    assert len(response.json()) == 5
-    assert [Transaction(**tx) for tx in response.json()] == tx1_objects
+    assert response.json()["total"] == 5
+    assert [Transaction(**tx) for tx in response.json()["items"]] == tx1_objects
 
 
 @pytest.mark.anyio

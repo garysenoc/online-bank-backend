@@ -9,7 +9,7 @@ async def test_get_subaccounts(async_client: AsyncClient, headers: dict, created
     subaccount = subaccount_response.json()
 
     assert response.status_code == 200
-    assert response.json() == [subaccount]
+    assert response.json()["items"] == [subaccount]
 
 
 @pytest.mark.anyio

@@ -3,6 +3,7 @@ from pyobjectID import PyObjectId, MongoObjectId
 from pymongo import ReturnDocument
 from typing import Annotated
 from bson import ObjectId
+from fastapi_pagination import Page, paginate
 
 from db.client import subaccounts
 from db.models.subaccount import Subaccount, CreateSubaccount, Balance
@@ -38,12 +39,12 @@ async def get_subaccounts_admin(session: dict) -> list[Subaccount]:
     return res_subaccounts
 
 @router.get("/")
-async def get_subaccounts(session: Annotated[dict, Depends(validate_session)]):
+async def get_subaccounts(session: Annotated[dict, Depends(validate_session)]) -> Page[Subaccount]:
     if session['role'] == 'msb':
-        return await get_subaccounts_msb(session)
+        return paginate(await get_subaccounts_msb(session))
     elif session['role'] == 'admin':
-        return await get_subaccounts_admin(session)
-    
+        return paginate(await get_subaccounts_admin(session))
+
     return [] # for lint
 
 async def get_subaccount_by_id(subaccount_id: str, requester_id: str):

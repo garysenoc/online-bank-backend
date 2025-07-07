@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from bson import ObjectId
 from passlib.hash import bcrypt
+from fastapi_pagination import add_pagination
 
 from main import app
 from dependencies.session import validate_session
@@ -54,7 +55,7 @@ async def test_validate_session():
 @pytest.fixture(scope="session")
 async def async_client():
     app.dependency_overrides[validate_session] = test_validate_session
-    async with AsyncClient(transport=ASGITransport(app=app), base_url=os.getenv("TEST_BASE_URL")) as client:
+    async with AsyncClient(transport=ASGITransport(app=add_pagination(app)), base_url=os.getenv("TEST_BASE_URL")) as client:
         yield client
 
     if database.name == os.getenv("TEST_DB"):

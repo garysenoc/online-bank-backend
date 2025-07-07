@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi_pagination import add_pagination
 from typing import Annotated
 from routers import user_router, session_router, subaccounts_router, transactions_router, payments_router, deposits_router
 
@@ -52,6 +53,7 @@ app = FastAPI(
         }
     ]
 )
+add_pagination(app)
 
 origins = [
     # "http://localhost:5173/", # vue dev
