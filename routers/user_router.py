@@ -3,6 +3,7 @@ from bson import ObjectId
 from pyobjectID import MongoObjectId
 from passlib.hash import bcrypt
 from typing import Annotated
+from fastapi_pagination import Page, paginate
 
 from db.client import users, user_access
 from db.models.users import User
@@ -19,7 +20,7 @@ router = APIRouter(
 )
 
 @router.get("/", 
-    response_model=User | list[User],
+    response_model=Page[User],
     status_code=200,
     summary="Get user(s) information",
     description="""
@@ -30,7 +31,7 @@ router = APIRouter(
 async def get_users(
     session: Annotated[dict, Depends(validate_session)], 
     user_id: str = ""
-) -> User | list[User]:
+) -> Page[User]:
     """
     Get user information.
 
@@ -52,10 +53,10 @@ async def get_users(
         user = await users.find_one({"_id": ObjectId(user_id)})
         if user == None:
             raise HTTPException(status_code=404, detail="User not found")
-        return User(**user)
+        return paginate([User(**user)])
 
-    users_cursor = users.find()
-    return [User(**user) for user in await users_cursor.to_list()]
+    all_users = await users.find().to_list()
+    return paginate([User(**user) for user in all_users])
 
 @router.post("/", 
     response_model=User,

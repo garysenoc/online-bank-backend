@@ -10,7 +10,7 @@ def exclude_keys(data: dict, excluded_list: list):
 async def test_get_users(async_client: AsyncClient, headers: dict, created_user: dict):
     response = await async_client.get("/v1/user/", headers=headers)
     assert response.status_code == 200
-    assert [exclude_keys(user, ["_id"]) for user in response.json()] == [exclude_keys(created_user, ["_id"])]
+    assert [exclude_keys(user, ["_id"]) for user in response.json()["items"]] == [exclude_keys(created_user, ["_id"])]
 
 
 @pytest.mark.anyio

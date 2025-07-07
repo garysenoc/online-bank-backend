@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from bson import ObjectId
 from pyobjectID import MongoObjectId
 from typing import Annotated
+from fastapi_pagination import Page, paginate
 
 from db.client import transactions, subaccounts
 from dependencies.session import validate_session
@@ -14,8 +15,9 @@ router = APIRouter(
 
 @router.get("/", status_code=200)
 async def get_transactions(
-    session: Annotated[dict, Depends(validate_session)], skip: int = 0, limit: int = 0, search: str = None
-):
+    session: Annotated[dict, Depends(validate_session)], skip: int = 0, limit: int = 0, search: str = None,
+    page: int = 1, size: int = 50
+) -> Page[Transaction | DepositTransaction]:
     subaccount_filter_criteria = { "admin_id": session["id"] } if session["role"] == "admin" else { "owner_id": session["id"] }
 
     subaccounts_ids_raw = await subaccounts.find(subaccount_filter_criteria).to_list()
@@ -41,7 +43,7 @@ async def get_transactions(
         if "type" in transaction: res += [DepositTransaction(**transaction)]
         else: res += [Transaction(**transaction)] # By default is internal to external
 
-    return res
+    return paginate(res)
 
 async def retrieve_transaction(transaction_id: str):
     transaction = await transactions.find_one({"_id": ObjectId(transaction_id)})
